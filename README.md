@@ -49,7 +49,7 @@ Epsilon DD 0.00001   ; tolerancia
 ```
 
 Kód pre porovnanie:
-```
+```asm
 ; nech v st(0) = A a st(1) = B sú čísla, ktoré chceme porovnať
 fld st(0)            ; zduplikuj číslo - teraz sa nachádza na st(0) a st(1)
                      ;                   a druhé číslo bolo posunuté do st(2)
