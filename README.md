@@ -83,4 +83,60 @@ Toto môže pomôcť s debuggingom.
 call ShowFPUStack
 ```
 
-### TODO: template na spracovanie symetrickej matice
+### Spracovanie symetrickej matice
+Tento template spracováva iba potrebnú časť **symetrickej** matice. Vhodný pre úlohy typu: *"Nájdite najkratšiu hranu v grafe a vypíšte vrcholy, ktoré spája."*
+
+Potrebný stav sa dá uložiť do voľných registrov alebo do pamäte.
+
+Na riešenie takýchto úloh sa dá prejsť aj celá matica, kód bude potom podstatne jednoduchší, ale menej efektívny. *Neočakávam, že by to však urobilo rozdiel na výslednej známke. Tento kód nie je aj tak najefektívnejší, je určený pre jednoduchosť použitia.*
+
+V dátovom segmente definujeme maticu bajtov a jej počet prvkov:
+```asm
+.data
+Matica DB 0, 1, 2, 1
+       DB 1, 0, 5, 4
+       DB 2, 5, 0, 7
+       DB 1, 4, 7, 0
+
+PocetPrvkov EQU 4
+```
+
+Kód pre prehľadanie matice:
+```asm
+xor EAX, EAX                ; index riadku
+mov EBX, 1                  ; index stlpca
+mov ECX, PocetPrvkov - 1
+mov ESI, EBX                ; index prvku v matici
+
+SpracujRiadok:
+  push ECX
+
+  mov ECX, PocetPrvkov
+  sub ECX, EBX
+
+  SpracujStlpec:
+    mov DL, Matica[ESI]
+    ; kód pre spracovanie jednotlivých prvkov sem
+    ; EAX = riadok, EBX = stĺpec, DL = samotný prvok
+      
+    ; ak by sme chceli pouziť register EAX/EBX/ECX/ESI, je potrebné
+    ; predtým uložiť ich stav a pred ďalším cyklom ho obnoviť (push / pop)
+    
+    ; ak potrebujeme register EDX pre iné účely, je možné pristupovať
+    ; k prvku priamo cez Matica[ESI]
+
+    inc ESI
+    loop SpracujStlpec
+
+  pop ECX
+  inc EAX
+  mov EBX, EAX
+  inc EBX
+  add ESI, EBX
+  loop SpracujRiadok
+```
+
+Ak by prvky neboli 8-bitové, ale 16/32-bitové, treba pozmeniť:
+- pri definícií matice v dátovom segmente `DB` za `DW` / `DD`
+- k jednotlivým prvkom je potrebné pristupovať cez `Matica[2*ESI]` / `Matica[4*ESI]`
+- ako destináciu pre uloženie prvku bude potrebný 16/32-bitový register (napr.: `DX`, `EDX`)
