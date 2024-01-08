@@ -1,18 +1,15 @@
-; TOTO VYPRACOVANIE JE ZLE KVOLI ZLYM DATAM, POKUSIM SA HO OPRAVIT
-
 TITLE MASM Skuska08012024		(main.asm)
 
 INCLUDE Irvine32.inc
 .data
-Matica DW 011011000b
-       DW 101101111b
-       DW 110100000b
-       DW 011000000b
-       DW 100001100b
-       DW 110010100b
-       DW 010011010b
-       DW 010000101b
-       DW 010000010b
+Matica DB 01101100b
+       DB 10110111b
+       DB 11010000b
+       DB 01100000b
+       DB 10000110b
+       DB 11001010b
+       DB 01001101b
+       DB 01000010b
 
 Nemecko DB "Nemecko", 0
 Rakusko DB "Rakusko", 0
@@ -22,12 +19,11 @@ Polsko DB "Polsko", 0
 Cesko DB "Cesko", 0
 Slovensko DB "Slovensko", 0
 Madarsko DB "Madarsko", 0
-Slovinsko DB "Slovinsko", 0
 
 NazvyStatov DD Nemecko, Rakusko, Svajciaskso, Lichtenstajnsko
-            DD Polsko, Cesko, Slovensko, Madarsko, Slovinsko
+            DD Polsko, Cesko, Slovensko, Madarsko
 
-PocetStatov EQU 9
+PocetStatov EQU 8
 
 
 SpravaPoctySusedov DB "Pocty susedov:", 0Dh, 0Ah, 0
@@ -55,34 +51,35 @@ main PROC
   SpracujRiadok:
     push ECX
 
-    mov ECX, PocetStatov
-    xor DL, DL                   ; pocet susedov momentalneho statu
-    mov DI, 1                    ; maska ku ktoremu bitu prave pristupujeme
+    mov AL, Matica[ESI]          ; momentalny riadok matice
+    xor CL, CL                   ; pocet susedov momentalneho statu
+    mov CH, 1                    ; maska ku ktoremu bitu prave pristupujeme
 
+    ; tento cyklus sa vykona 8 krat kvoli 8-bitovemu registru
     ; postupne posuvame bit masky dolava cim pristupujeme ku vsetkym prvkom riadku matice
     SpracujStlpec:
-      mov AX, Matica[2*ESI]
-      and AX, DI                 ; instrukcia AND nastavi zero flag podla susednosti
+      mov DL, AL                 ; skopiruj momentalny riadok matice
+      and DL, CH                 ; instrukcia AND nastavi zero flag podla susednosti
       jz Nesusedia
-      inc DL
+      inc CL
 
      Nesusedia:
-      shl DI, 1
-      loop SpracujStlpec
+      shl CH, 1
+      jnc SpracujStlpec
 
-    cmp DL, BH                   ; ak ma momentalny stat viac susedov ako zatial "najsusednejsi :D"
+    cmp CL, BH                   ; ak ma momentalny stat viac susedov ako zatial "najsusednejsi :D"
     jbe MenejAleboRovnakoSusedov
     mov BX, SI                   ; register SI sa neda rozdelit na mensie a obsahuje 8-bitovu hodnotu,
-    mov BH, DL                   ; preto skopirujeme celych 16 bitov do BX a hornych 8 neskor prepiseme
+    mov BH, CL                   ; preto skopirujeme celych 16 bitov do BX a hornych 8 neskor prepiseme
 
   MenejAleboRovnakoSusedov:
-    movzx EAX, DL
     mov EDX, NazvyStatov[4*ESI]
     call WriteString
 
     mov EDX, OFFSET SeparatorPocetSusedov
     call WriteString
     
+    movzx EAX, CL
     call WriteInt
     call CRLF
 
@@ -99,11 +96,11 @@ main PROC
 
     mov ECX, PocetStatov - 1     ; nakolko indexujeme zlava a maska zacina sprava, "otoc" masku
     sub ECX, EAX
-    mov DI, 1                    ; maska podla prveho indexu
+    mov BH, 1                    ; maska podla prveho indexu
     jecxz NultyPrvok             ; ak ma maska mat 1 na nultom bite, nesmieme vykonat cyklus
 
   PripravMasku:
-    shl DI, 1
+    shl BH, 1
     loop PripravMasku
 
   NultyPrvok:
@@ -113,8 +110,8 @@ main PROC
 
     
     mov EDX, OFFSET SpravaNesusedia
-    mov AX, Matica[2*EAX]        ; nacitaj riadok matice podla druheho indexu
-    and AX, DI                   ; skontroluj ci susedi s prvym indexom podla masky
+    mov AL, Matica[EAX]          ; nacitaj riadok matice podla druheho indexu
+    and AL, BH                   ; skontroluj ci susedi s prvym indexom podla masky
     jz  IndexyNesusedia
 
     mov EDX, OFFSET SpravaSusedia
