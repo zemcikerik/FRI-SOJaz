@@ -40,6 +40,25 @@ pop AX               ; cleanup
 fstp st(0)           ; ulož číslo z st(0) do st(0) a popni ho
 ```
 
+### Porovnávanie čísel s pohyblivou radovou čiarkou na FPU
+
+```asm
+; nech v st(0) = A a st(1) = B sú čísla, ktoré chceme porovnať
+fcom                 ; porovnaj číslo A s číslom B
+fstsw AX             ; načítaj výsledok komparácie do EFLAGS pomocou registra AX
+sahf                 ; (ak je v ňom niečo potrebné, pushni a popni!)
+
+; v tomto bode môžeme použiť skokové inštrukcie pre čísla bez znamienka, napríklad:
+jbe Navestie         ; skoč na zadané návestie ak A <= B    [st(0) <= st(1)]
+ja  Navestie         ; skoč na zadané návestie ak A > B     [st(0) > st(1)]
+```
+
+Pre skoky sa v tomto prípade vždy používajú skokové inštrukcie pre čísla **bez** znamienka, aj keď ich dané číslá s pohyblivou radovou čiarkou majú.
+
+Tento kód nemusí vždy fungovať kvôli limitovanej presnosti čísel pohyblivej radovej čiarky (hlavne pri veľmi veľkých číslach).
+Kód pre bezpečné porovnávanie je uvedený v ďalšej sekcií.
+*Na zadania z tohto predmetu je však pravdepobone postačujúci, výber porovnávacej metódy nechávam na Vás.*
+
 ### Bezpečné porovnávanie čísel s pohyblivou radovou čiarkou na FPU
 
 V dátovom segmente definujeme presnosť `Epsilon`, s ktorou chceme porovnávať:
