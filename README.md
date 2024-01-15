@@ -29,9 +29,9 @@ pop AX               ; cleanup
 ### Načítanie 32-bitového celého čísla na vrchol FPU zásobníka st(0) z registra
 
 ```asm
-push AX              ; dočasne pushni zdroj na zásobník
+push EAX             ; dočasne pushni zdroj na zásobník
 fild DWORD PTR [ESP] ; načítaj pushnuté celé číslo z vrchola zásobníka
-pop AX               ; cleanup
+pop EAX              ; cleanup
 ```
 
 ### Odstránenie čísla z vrchola FPU zásobníka st(0)
